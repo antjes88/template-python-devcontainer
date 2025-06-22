@@ -5,5 +5,5 @@
         "tests"
     ],
     "python.testing.pytestEnabled": true,
-    "python.defaultInterpreterPath": "/usr/app/venv/bin/activate",
+    "python.defaultInterpreterPath": "/usr/app/venv/bin",
 }
