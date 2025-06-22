@@ -1,0 +1,5 @@
+flask==3.0.0
+flask-smorest==0.42.3
+Flask-JWT-Extended==4.6.0
+gunicorn==23.0.0
+passlib==1.7.4

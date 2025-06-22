@@ -1,6 +1,6 @@
 # Template Python Devcontainer
 
-A template repository for Python projects using a preconfigured Dev Container environment.
+A template repository for Python projects using a preconfigured Dev Container environment. The template includes examples for building command-line interfaces with Click, developing Flask-based REST API applications with integrated Swagger documentation, and structuring your codebase following a Clean Architecture approach. It is designed to encourage adherence to SOLID principles, separation of concerns, and testable, maintainable code. It also includes Terraform and GitHub workflows to deploy the solution as a Cloud Function, or a Cloud Run service.
 
 
 ## Features
@@ -59,6 +59,37 @@ python -m pytest -vv --cov --cov-report=html
 ```
 
 Unit testing has been integrated into the CI/CD pipeline. A merge will not be approved unless all tests pass successfully. Additionally, a coverage report is automatically generated and provided as a comment for reference. A Service Account granted with role {`list_required_roles`} is required. Current workflow, `.github/workflows/pytest.yaml`, is set to access GCP Project through Workload Identity Provider.
+
+#### Flask App
+
+To run the Flask app locally for debugging and testing purposes, you need to load the following Flask Environment Variables in your terminal:
+
+```bash
+export FLASK_APP=src/entrypoints/flaskapp/app.py:server
+export FLASK_ENV=development
+export FLASK_DEBUG=1
+```
+
+Then, to start the server:
+
+```bash
+flask run
+```
+
+When run in this mode, the server will automatically restart whenever a file is saved, allowing for seamless testing and development.
+To fully integrate the authetication process, you also need to provide a .env file with the following variables:
+
+```ini
+WEB_USERNAME=
+WEB_PASSWORD_HASH=
+```
+
+In order to create a hashed password you must use:
+
+```python
+from passlib.hash import bcrypt
+print(bcrypt.hash("yourpassword"))
+```
 
 ## Component Diagram
 
@@ -150,14 +181,21 @@ You need to modify the following files to adapt the template to your specific pr
 3. **`.devcontainer/post_create_commands.sh`**:  
     - Update lines 4 to 6 to reflect the new CLI command name and workspace name.
 
-4. **GitHub Workflows**:  
-    - In all workflow files (e.g., `.github/workflows/pytest.yaml`, `.github/workflows/terraform-validate.yaml`, `.github/workflows/terraform-apply.yaml`), modify the `on` clause to allow execution on the `main` branch.
-
-5. **`main.tf`**:  
-    - Update the Terraform backend configuration to use the correct Google Cloud Storage (GCS) bucket name and path to locate tfstate files.
-
-6. **Source Code**:  
+4. **Source Code**:  
     - Adjust the source code as necessary to align with your project's requirements. Refer to the provided small examples for guidance.
     - Update requirements.txt as required.
+
+5. **Python setup**:
+    - Decide if you need CLI or web app capacitites.
+    - Modify/remove accordingly code found in `src/entrypoints`, `.devcontainer/cli-requirements.txt`, `.devcontainer/webapp-requirements.txt`, and `.devcontainer/python_setup.sh`.
+
+6. **Terraform configuration**:  
+    - In the `terraform` folder, you'll find preconfigured setups for deploying Cloud Functions, and Cloud Run services. Modify the configuration as needed and add variable values to the corresponding `terraform.tfvars` file.  
+    - Update the Terraform backend configuration to use the correct Google Cloud Storage (GCS) bucket name and path to locate tfstate files.
+
+7. **Github workflows**:  
+    - GitHub workflow templates for deployment (validation on pull requests and apply on merge) for Cloud Functions, and Cloud Run services can be found in the .github/templates folder. Modify them as needed.
+    - In all workflow files (e.g., `.github/workflows/pytest.yaml`, `.github/workflows/terraform-validate.yaml`, `.github/workflows/terraform-apply.yaml`), modify the on clause to allow execution on the main branch. Also, for Terraform workflow files, select the appropriate template for deployment.
+
 
 By following these steps, you can customize the template to suit your project's needs.
