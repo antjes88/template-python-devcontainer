@@ -25,7 +25,7 @@ WORKDIR /usr/app
 COPY --chown=app:app ./.devcontainer/install_gcloud.sh .
 RUN sed -i 's/\r$//' ./install_gcloud.sh && \
     chmod +x ./install_gcloud.sh
-
+RUN ./install_gcloud.sh
 
 FROM gcloud AS devcontainer
 ENV ISDEVCONTAINER=true
