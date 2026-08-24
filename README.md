@@ -1,31 +1,44 @@
 # Template Python Devcontainer
 
-A template repository for Python projects using a preconfigured Dev Container environment. The template includes examples for building command-line interfaces with Click, developing Flask-based REST API applications with integrated Swagger documentation, and structuring your codebase following a Clean Architecture approach. It is designed to encourage adherence to SOLID principles, separation of concerns, and testable, maintainable code. It also includes Terraform and GitHub workflows to deploy the solution as a Cloud Function, or a Cloud Run service.
+A template repository for Python projects using a preconfigured Dev Container environment. The template includes examples for building command-line interfaces with Click, developing Flask-based REST API applications with integrated Swagger documentation, and structuring your codebase following a Clean Architecture approach. It is designed to encourage adherence to SOLID principles, separation of concerns, and testable, maintainable code. It also includes Terraform and GitHub workflows to deploy the solution as a Cloud Function or a Cloud Run service.
 
 
 ## Features
 
-- **Development Environment**: Pre-configured development container for consistent setup.
-- **Comprehensive Testing**: Includes pre-configured unit tests and integration tests to ensure code reliability, along with test coverage reporting.
-- **Pipeline Integration**: Automated pipelines to unit test python solution.
+- **Standardized Dev Container**: Pre-configured VS Code development container with Python 3.12, Google Cloud SDK, and Terraform for an immediate, consistent development environment across machines.
+- **Clean Architecture & SOLID Design**: Onion architecture skeleton that completely decouples core domain models (`src/model.py`), use-case services (`src/services.py`), and repository interfaces/ports (`src/*_repository.py`) from infrastructure and delivery mechanisms.
+- **Multiple Entrypoint Implementations**:
+  - **CLI (Command Line Interface)**: Ready-to-use CLI tool built with `Click` and subcommands support.
+  - **REST API Application**: Flask web application built with `flask-smorest`, JWT authentication (`Flask-JWT-Extended`), bcrypt password hashing (`passlib`), and interactive OpenAPI / Swagger UI documentation at `/docs`.
+  - **Event-Driven Cloud Function**: Serverless Cloud Function (Gen 2) entrypoint designed for Pub/Sub triggers.
+- **Modular Dependency Management**: Decoupled requirement files for core dependencies (`requirements.txt`), development/testing (`dev-requirements.txt`), CLI tools (`cli-requirements.txt`), and web applications (`webapp-requirements.txt`).
+- **Comprehensive Testing & Quality Assurance**: Pre-configured `pytest` suite with `pytest-cov` coverage enforcement (>= 95% threshold), automated coverage reporting, and code formatting with `black`.
+- **Infrastructure as Code (Terraform)**:
+  - Preconfigured Terraform modules to deploy either a **Cloud Function (Gen 2)** (with Pub/Sub topic and Cloud Scheduler cron trigger) or a **Cloud Run Service (v2)** (with Artifact Registry integration and Gunicorn).
+  - Remote state management configured for Google Cloud Storage (GCS).
+- **Automated CI/CD Pipelines (GitHub Actions)**:
+  - Automated test execution with PR coverage comment generation.
+  - Keyless Google Cloud authentication via Workload Identity Federation (WIF).
+  - Reusable workflows for Terraform validation on pull requests and automated deployment on merge.
+  - Multi-stage Docker builds and automated source packaging scripts.
 
 ## Development environment
 
-Recommended development enviroment is VSCode Dev Containers extension. The configuration and set up of this dev container is already defined in `.devcontainer/devcontainer.json` so setting up a new containerised dev environment on your machine is straight-forward.
+The recommended development environment is the VSCode Dev Containers extension. The configuration and setup of this dev container is already defined in `.devcontainer/devcontainer.json`, so setting up a new containerized dev environment on your machine is straightforward.
 
 Pre-requisites:
-- docker installed on your machine and available on your `PATH`
+- Docker installed on your machine and available on your `PATH`
 - [Visual Studio Code](https://code.visualstudio.com/) (VSCode) installed on your machine
-- [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) vscode extension installed
+- [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) VSCode extension installed
 
 Steps:
-- In VSCode go to `View -> Command Pallet` and search for the command `>Dev Containers: Rebuild and Reopen in Container`
+- In VSCode go to `View -> Command Palette` and search for the command `>Dev Containers: Rebuild and Reopen in Container`
 
-The first time you open the workspace within the container it'll take a few minutes to build the container, setup the virtual env and then login to gcloud. At the end of this process you will be presented with a url and asked to provide an authorization. Simply follow the url, permit the access and copy the auth code provided at the end back into to the terminal and press enter. 
+The first time you open the workspace within the container, it'll take a few minutes to build the container, set up the virtual env, and then login to gcloud. At the end of this process, you will be presented with a URL and asked to provide an authorization. Simply follow the URL, permit the access, copy the auth code provided at the end back into the terminal, and press enter. 
 
 ### Configure Git 
 
-For seamless Git usage in a Dev Container, create a local script at .devcontainer/git_config.sh (do not push this file to the repository) and set your GitHub account name and email:
+For seamless Git usage in a Dev Container, create a local script at `.devcontainer/git_config.sh` (do not push this file to the repository) and set your GitHub account name and email:
 
 ```bash
 #!/bin/bash
@@ -38,7 +51,7 @@ git config --global user.email "your github account email"
 
 Local execution is enhanced by the use of the Python library `Click`, which allows the creation of Command Line Interfaces. To execute the solution locally, run the command {`indicate-cli-bin-file-name`} in a Bash terminal inside the devcontainer. This command will display a message listing the available arguments for performing different actions. You can explore additional details and options by using the `--help` flag.
 
-you need to provide a `.env` file at project root location with the following data:
+You need to provide a `.env` file at the project root location with the following data:
 
 ```ini
 {includes env vars required}
@@ -52,13 +65,13 @@ To execute tests, provide a `tests/.env` file with the following data:
 {includes env vars required}
 ```
 
-To run the tests, execute the following command in terminal:
+To run the tests, execute the following command in the terminal:
 
 ```bash
 python -m pytest -vv --cov --cov-report=html
 ```
 
-Unit testing has been integrated into the CI/CD pipeline. A merge will not be approved unless all tests pass successfully. Additionally, a coverage report is automatically generated and provided as a comment for reference. A Service Account granted with role {`list_required_roles`} is required. Current workflow, `.github/workflows/pytest.yaml`, is set to access GCP Project through Workload Identity Provider.
+Unit testing has been integrated into the CI/CD pipeline. A merge will not be approved unless all tests pass successfully. Additionally, a coverage report is automatically generated and provided as a comment for reference. A Service Account granted with role {`list_required_roles`} is required. The current workflow, `.github/workflows/pytest.yaml`, is set to access the GCP project through Workload Identity Provider.
 
 #### Flask App
 
@@ -77,14 +90,14 @@ flask run
 ```
 
 When run in this mode, the server will automatically restart whenever a file is saved, allowing for seamless testing and development.
-To fully integrate the authetication process, you also need to provide a .env file with the following variables:
+To fully integrate the authentication process, you also need to provide a `.env` file with the following variables:
 
 ```ini
 WEB_USERNAME=
 WEB_PASSWORD_HASH=
 ```
 
-In order to create a hashed password you must use:
+In order to create a hashed password, you must use:
 
 ```python
 from passlib.hash import bcrypt
@@ -93,13 +106,13 @@ print(bcrypt.hash("yourpassword"))
 
 ## Component Diagram
 
-The code architecture of the Python solution is illustrated below. We adopt Onion/Clean Architecture, so ensuring that our Business Logic (Domain Model) has no dependencies. Our goal is to follow SOLID principles, promoting seamless future changes and enhancing code clarity.
+The code architecture of the Python solution is illustrated below. We adopt Onion/Clean Architecture, ensuring that our Business Logic (Domain Model) has no dependencies. Our goal is to follow SOLID principles, promoting seamless future changes and enhancing code clarity.
 
 The `{path-to-main-file}` file is used by the deployed solution as entrypoint, as required by {indicate infrastructure used}. Locally, as described in the "Local Execution" section, code execution starts from the Python entrypoint located at `src/entrypoints/cli/__main__.py`. This entrypoint is invoked using the command {`indicate-cli-bin-file-name`} in a Bash terminal. 
 
-Several entry points can be provided seamlessly because, following Clean Architecture principles, the `main.py` function is treated as the last detail. This ensures that none of the core solution code depends on the entry point; instead, the entry point depends on the core solution code. This design promotes flexibility and allows for the easy addition of new entry points without impacting the existing architecture. Which, in turn, means that the source is independent of the infrastructure. 
+Several entry points can be provided seamlessly because, following Clean Architecture principles, the `main.py` function is treated as the last detail. This ensures that none of the core solution code depends on the entry point; instead, the entry point depends on the core solution code. This design promotes flexibility and allows for the easy addition of new entry points without impacting the existing architecture, which, in turn, means that the source is independent of the infrastructure. 
 
-The Python entrypoint invokes one of the services found in `src/services.py`. {Include small description of current services}. This service receive objects of the clients for both the destination repository and the source repository as parameters.
+The Python entrypoint invokes one of the services found in `src/services.py`. {Include small description of current services}. These services receive objects of the clients for both the destination repository and the source repository as parameters.
 
 The services handle the execution by calling methods found in the Domain and Adapters to ensure the successful completion of the process.
 
@@ -109,19 +122,19 @@ The services handle the execution by calling methods found in the Domain and Ada
 
 The clients for data storage have been implemented following the Repository pattern. This design pattern abstracts the logic for retrieving and storing data, providing a higher-level interface to the rest of the application. By doing so, it enables the implementation of the Dependency Inversion Principle (DIP). This approach allows our Database Layer (Adapters) to depend on the Domain Model, rather than the other way around. This, in turn, facilitates the seamless use of the same Business Logic/Domain Model in another scenario with a different Infrastructure/Data Layer.
 
-Related code can be found on `src/destination_repository.py` and `src/source_repository.py`.
+Related code can be found in `src/destination_repository.py` and `src/source_repository.py`.
 
 {Include adapters diagram}
 <!-- <p align="center">
     <img src="docs/images/adapters_diagram.png" alt="Adapters Diagram">
 </p> -->
 
-In the picture above you can also find the Domain Model diagram representing the code found in `src/model` folder. Circles are value objects and rectangles are entities.
+In the picture above you can also find the Domain Model diagram representing the code found in the `src/model` folder. Circles are value objects and rectangles are entities.
 
 ## CI/CD - Pipeline Integration
 There are 2 CI/CD pipelines implemented as GitHub Actions:
 
-1. **Pytest**: This pipeline is defined in the `.github/workflows/pytest.yaml` file. It is triggered on every pull request, what runs unit tests using `pytest`. It also generates a test coverage report to ensure code quality. If any test fails, the pipeline will block the merge process, ensuring that only reliable code is integrated into the main branch. Finally, the pipeline requiress a pytest coverage over a given threshold. A Service Account granted with role {`list_required_roles`} is required. Current workflow, `.github/workflows/pytest.yaml`, is set to access GCP Project through Workload Identity Provider.
+1. **Pytest**: This pipeline is defined in the `.github/workflows/pytest.yaml` file. It is triggered on every pull request, which runs unit tests using `pytest`. It also generates a test coverage report to ensure code quality. If any test fails, the pipeline will block the merge process, ensuring that only reliable code is integrated into the main branch. Finally, the pipeline requires a pytest coverage over a given threshold. A Service Account granted with role {`list_required_roles`} is required. The current workflow, `.github/workflows/pytest.yaml`, is set to access the GCP project through Workload Identity Provider.
 
 2. **Deployment**: The deployment process is managed through two GitHub Actions workflows. The first workflow, `.github/workflows/terraform-validate.yaml`, validates the Terraform code and generates a deployment plan during a pull request, blocking merge in case of failures. The second workflow, `.github/workflows/terraform-apply.yaml`, executes after a merge to deploy the changes to Google Cloud Platform (GCP).
 
@@ -164,7 +177,7 @@ To reuse the GitHub Action, follow these steps:
    - Set the Service Account as the principal for the Workload Identity Provider created in step 1.
 
 3. **Provide secrets:**
-    - `WORKLOAD_IDENTITY_PROVIDER` & `SERVICE_ACCOUNT_EMAIL` must be provided as Github Actions Secrets.
+    - `WORKLOAD_IDENTITY_PROVIDER` & `SERVICE_ACCOUNT_EMAIL` must be provided as GitHub Actions Secrets.
 
 
 # Reuse template
@@ -186,7 +199,7 @@ You need to modify the following files to adapt the template to your specific pr
     - Update requirements.txt as required.
 
 5. **Python setup**:
-    - Decide if you need CLI or web app capacitites.
+    - Decide if you need CLI or web app capabilities.
     - Modify/remove accordingly code found in `src/entrypoints`, `.devcontainer/cli-requirements.txt`, `.devcontainer/webapp-requirements.txt`, and `.devcontainer/python_setup.sh`.
 
 6. **Terraform configuration**:  

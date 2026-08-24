@@ -1,6 +1,7 @@
 from src.model import ExampleValueObject, ExampleEntity
 import datetime as dt
 
+
 def test_example_value_object_equality():
     """
     GIVEN two ExampleValueObject instances with the same value and unit, and one with different value or unit
@@ -29,9 +30,9 @@ def test_example_entity_equality():
         and the entity should not be equal to an instance of a different type
     """
     value_obj = ExampleValueObject(value=10.0, unit="kg")
-    entity1 = ExampleEntity(id=1, name="Entity1", value_object=value_obj, created_at=dt.datetime(2023, 1, 1))
-    entity2 = ExampleEntity(id=1, name="Entity2", value_object=value_obj, created_at=dt.datetime(2023, 1, 2))
-    entity3 = ExampleEntity(id=2, name="Entity3", value_object=value_obj, created_at=dt.datetime(2023, 1, 3))
+    entity1 = ExampleEntity(id=1, name="Entity1", value_object=value_obj)
+    entity2 = ExampleEntity(id=1, name="Entity2", value_object=value_obj)
+    entity3 = ExampleEntity(id=2, name="Entity3", value_object=value_obj)
 
     assert entity1 == entity2  # Entities with the same ID should be equal
     assert entity1 != entity3  # Entities with different IDs should not be equal
