@@ -6,6 +6,7 @@ RUN adduser --uid 10000 app
 RUN mkdir -p /usr/app
 RUN chown app:app /usr/app
 
+
 FROM base AS terraform
 # Install terraform
 RUN apt-get update
@@ -17,7 +18,15 @@ RUN mv terraform /usr/bin/
 RUN rm terraform_1.6.6_linux_amd64.zip
 
 
-FROM terraform AS gcloud
+FROM terraform AS npx
+# Install npx
+RUN apt-get update && apt-get install -y curl gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+
+FROM npx AS gcloud
 # Install gcloud
 USER 10000
 WORKDIR /usr/app
