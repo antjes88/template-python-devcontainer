@@ -115,7 +115,7 @@ python -m pytest -vv --cov --cov-report=html
 
 Unit testing has been integrated into the CI/CD pipeline. A merge will not be approved unless all tests pass successfully. Additionally, a coverage report is automatically generated and provided as a comment for reference. A Service Account granted with role {`list_required_roles`} is required. The current workflow, `.github/workflows/pytest.yaml`, is set to access the GCP project through Workload Identity Provider.
 
-#### Flask App
+### Flask App
 
 To run the Flask app locally for debugging and testing purposes, you need to load the following Flask Environment Variables in your terminal:
 
@@ -238,7 +238,7 @@ You need to modify the following files to adapt the template to your specific pr
     - In `bashrc.sh`, update the workspace path for `.devcontainer/load_mcp_config_tokens.sh`.
 
 4. **`.agents/rules/AGENTS.md`**:  
-    - Update the project domain description and tailor the architectural, database, web, and testing rules to match your specific solution.
+    - Fill in the `{...}` project domain description and remove any persistence (`Section 3`) or entrypoint subsections (`Section 4.1–4.4`) that do not apply to your solution.
 
 5. **Source Code**:  
     - Adjust the source code as necessary to align with your project's requirements. Refer to the provided small examples for guidance.
