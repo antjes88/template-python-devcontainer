@@ -21,7 +21,8 @@
                 "meezilla.json",
                 "mechatroner.rainbow-csv",
                 "hashicorp.terraform",
-                "github.vscode-github-actions"
+                "github.vscode-github-actions",
+                "google.google-antigravity"
             ]
         }
     }

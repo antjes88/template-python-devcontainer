@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "context7": {
+      "serverUrl": "https://mcp.context7.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${MCP_CONTEXT7_TOKEN}"
+      }
+    }
+  }
+}

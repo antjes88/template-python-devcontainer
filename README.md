@@ -5,7 +5,7 @@ A template repository for Python projects using a preconfigured Dev Container en
 
 ## Features
 
-- **Standardized Dev Container**: Pre-configured VS Code development container with Python 3.12, Google Cloud SDK, and Terraform for an immediate, consistent development environment across machines.
+- **Standardized Dev Container**: Pre-configured VS Code development container with Python 3.12, Node.js (`npx`), Google Cloud SDK, and Terraform for an immediate, consistent development environment across machines.
 - **Clean Architecture & SOLID Design**: Onion architecture skeleton that completely decouples core domain models (`src/model.py`), use-case services (`src/services.py`), and repository interfaces/ports (`src/*_repository.py`) from infrastructure and delivery mechanisms.
 - **Multiple Entrypoint Implementations**:
   - **CLI (Command Line Interface)**: Ready-to-use CLI tool built with `Click` and subcommands support.
@@ -21,6 +21,7 @@ A template repository for Python projects using a preconfigured Dev Container en
   - Keyless Google Cloud authentication via Workload Identity Federation (WIF).
   - Reusable workflows for Terraform validation on pull requests and automated deployment on merge.
   - Multi-stage Docker builds and automated source packaging scripts.
+- **AI Agent & MCP Ready**: Pre-configured with Google Antigravity extension, project-specific agent architecture rules (`.agents/rules/AGENTS.md`), built-in **Context7** MCP plugin (`.agents/plugins/context7/`), Agent Skills CLI (`npx skills`), and local MCP token loading support.
 
 ## Development environment
 
@@ -45,6 +46,47 @@ For seamless Git usage in a Dev Container, create a local script at `.devcontain
 
 git config --global user.name "your github account name"
 git config --global user.email "your github account email"
+```
+
+### Configure Context7 Plugin & MCP Tokens (Optional)
+
+The repository includes **Context7** pre-configured as an agent plugin under `.agents/plugins/context7/` (`plugin.json` and `mcp_config.json`), allowing AI agents to query up-to-date library documentation via MCP (`https://mcp.context7.com/mcp`).
+
+To authenticate the plugin inside the Dev Container, create a local script at `.devcontainer/load_mcp_config_tokens.sh` (ignored by Git, do not push this file to the repository) with your API token:
+
+```bash
+#!/bin/bash
+
+export MCP_CONTEXT7_TOKEN="your-context7-token"
+```
+
+### Manage AI Agent Skills (`npx skills`)
+
+The Dev Container includes Node.js and `npx` so you can discover and install reusable AI Agent Skills into the workspace (`.agents/skills/`).
+
+#### Browse Skills in the Browser
+You can explore, search, and inspect available community and official skills in the open directory before installing them:
+- **[skills.sh](https://skills.sh)** — The main Agent Skills directory and leaderboard where you can browse skills by category, repository, and popularity, and copy the exact `npx skills add` command.
+
+#### CLI Usage (`npx skills`)
+From the Dev Container terminal, you can search, install, and manage skills directly:
+
+```bash
+# Search for skills interactively or by keyword
+npx skills find [query]
+
+# Install a skill from a GitHub repository (e.g. owner/repo)
+npx skills add <owner/repo>
+
+# Install a specific skill from a repository
+npx skills add <owner/repo@skill-name>
+
+# List installed skills in the project
+npx skills list
+
+# Check for updates and update installed skills
+npx skills check
+npx skills update
 ```
 
 ### Local Execution
@@ -73,7 +115,7 @@ python -m pytest -vv --cov --cov-report=html
 
 Unit testing has been integrated into the CI/CD pipeline. A merge will not be approved unless all tests pass successfully. Additionally, a coverage report is automatically generated and provided as a comment for reference. A Service Account granted with role {`list_required_roles`} is required. The current workflow, `.github/workflows/pytest.yaml`, is set to access the GCP project through Workload Identity Provider.
 
-#### Flask App
+### Flask App
 
 To run the Flask app locally for debugging and testing purposes, you need to load the following Flask Environment Variables in your terminal:
 
@@ -180,7 +222,7 @@ To reuse the GitHub Action, follow these steps:
     - `WORKLOAD_IDENTITY_PROVIDER` & `SERVICE_ACCOUNT_EMAIL` must be provided as GitHub Actions Secrets.
 
 
-# Reuse template
+## Reuse template
 
 You need to modify the following files to adapt the template to your specific project:
 
@@ -191,24 +233,28 @@ You need to modify the following files to adapt the template to your specific pr
 2. **`cli/bin/template-python-devcontainer`**:  
     - Modify the CLI activation file name to better represent the purpose of your solution.
 
-3. **`.devcontainer/post_create_commands.sh`**:  
-    - Update lines 4 to 6 to reflect the new CLI command name and workspace name.
+3. **`.devcontainer/post_create_commands.sh` & `.devcontainer/bashrc.sh`**:  
+    - In `post_create_commands.sh`, update lines 4 to 6 to reflect the new CLI command name and workspace name.
+    - In `bashrc.sh`, update the workspace path for `.devcontainer/load_mcp_config_tokens.sh`.
 
-4. **Source Code**:  
+4. **`.agents/rules/AGENTS.md`**:  
+    - Fill in the `{...}` project domain description and remove any persistence (`Section 3`) or entrypoint subsections (`Section 4.1–4.4`) that do not apply to your solution.
+
+5. **Source Code**:  
     - Adjust the source code as necessary to align with your project's requirements. Refer to the provided small examples for guidance.
-    - Update requirements.txt as required.
+    - Update `requirements.txt` as required.
 
-5. **Python setup**:
+6. **Python setup**:
     - Decide if you need CLI or web app capabilities.
     - Modify/remove accordingly code found in `src/entrypoints`, `.devcontainer/cli-requirements.txt`, `.devcontainer/webapp-requirements.txt`, and `.devcontainer/python_setup.sh`.
 
-6. **Terraform configuration**:  
+7. **Terraform configuration**:  
     - In the `terraform` folder, you'll find preconfigured setups for deploying Cloud Functions, and Cloud Run services. Modify the configuration as needed and add variable values to the corresponding `terraform.tfvars` file.  
     - Update the Terraform backend configuration to use the correct Google Cloud Storage (GCS) bucket name and path to locate tfstate files.
 
-7. **Github workflows**:  
-    - GitHub workflow templates for deployment (validation on pull requests and apply on merge) for Cloud Functions, and Cloud Run services can be found in the .github/templates folder. Modify them as needed.
-    - In all workflow files (e.g., `.github/workflows/pytest.yaml`, `.github/workflows/terraform-validate.yaml`, `.github/workflows/terraform-apply.yaml`), modify the on clause to allow execution on the main branch. Also, for Terraform workflow files, select the appropriate template for deployment.
+8. **Github workflows**:  
+    - GitHub workflow templates for deployment (validation on pull requests and apply on merge) for Cloud Functions, and Cloud Run services can be found in the `.github/templates` folder. Modify them as needed.
+    - In all workflow files (e.g., `.github/workflows/pytest.yaml`, `.github/workflows/terraform-validate.yaml`, `.github/workflows/terraform-apply.yaml`), modify the `on` clause to allow execution on the `main` branch. Also, for Terraform workflow files, select the appropriate template for deployment.
 
 
-By following these steps, you can customize the template to suit your project's needs.
+By following these steps, you can customize the template to suit your project's needs. Once adapted, remember to fill in the `{...}` placeholders in this `README.md` and remove this `Reuse template` section.

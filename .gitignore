@@ -162,6 +162,7 @@ cython_debug/
 # others
 kindergarden.py
 .devcontainer/git_config.sh
+.devcontainer/load_mcp_config_tokens.sh
 ./temp
 ./tmp
 
